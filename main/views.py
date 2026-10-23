@@ -59,7 +59,7 @@ def transaction_list(request):
         "net_total": total_income - total_expenses,
     }
 
-    return render(request, "main/transactions.html", context)
+    return render(request, "main/transactions000.html", context)
 
 
 def add_transaction(request):
@@ -72,7 +72,7 @@ def add_transaction(request):
     else:
         form = TransactionForm()
 
-    return render(request, "main/add_transaction.html", {"form": form})
+    return render(request, "main/add_transaction000.html", {"form": form})
 
 
 def toggle_paid(request, transaction_id):
