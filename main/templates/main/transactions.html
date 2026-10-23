@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Budget</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f5f7fa;
+            color: #222;
+        }
+        .summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .card, .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .card { flex: 1; min-width: 160px; }
+        .income { color: #16803c; }
+        .expense { color: #c0392b; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        input, select, button, .button {
+            padding: 9px;
+            margin: 4px 0;
+        }
+        .button {
+            display: inline-block;
+            background: #2457d6;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .actions form { display: inline; }
+    </style>
+</head>
+<body>
+    <h1>My Budget</h1>
+
+    <p>
+        <a class="button" href="{% url 'add_transaction' %}">
+            + Add Transaction
+        </a>
+    </p>
+
+    <div class="summary">
+        <div class="card">
+            <p>Expected Income</p>
+            <h2 class="income">${{ total_income|floatformat:2 }}</h2>
+        </div>
+        <div class="card">
+            <p>Expected Expenses</p>
+            <h2 class="expense">${{ total_expenses|floatformat:2 }}</h2>
+        </div>
+        <div class="card">
+            <p>Net Difference</p>
+            <h2>${{ net_total|floatformat:2 }}</h2>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Transactions</h2>
+
+        <form method="get">
+            <label>Type:</label>
+            <select name="type">
+                <option value="">All</option>
+                <option value="income"
+                    {% if transaction_type == "income" %}selected{% endif %}>
+                    Income
+                </option>
+                <option value="expense"
+                    {% if transaction_type == "expense" %}selected{% endif %}>
+                    Expense
+                </option>
+            </select>
+
+            <label>Status:</label>
+            <select name="status">
+                <option value="">All</option>
+                <option value="paid"
+                    {% if status == "paid" %}selected{% endif %}>
+                    Paid / Received
+                </option>
+                <option value="unpaid"
+                    {% if status == "unpaid" %}selected{% endif %}>
+                    Unpaid / Not Received
+                </option>
+            </select>
+
+            <label>Sort:</label>
+            <select name="sort">
+                <option value="date">Oldest date first</option>
+                <option value="-date"
+                    {% if sort == "-date" %}selected{% endif %}>
+                    Newest date first
+                </option>
+                <option value="name"
+                    {% if sort == "name" %}selected{% endif %}>
+                    Name A-Z
+                </option>
+                <option value="-name"
+                    {% if sort == "-name" %}selected{% endif %}>
+                    Name Z-A
+                </option>
+                <option value="amount"
+                    {% if sort == "amount" %}selected{% endif %}>
+                    Amount low-high
+                </option>
+                <option value="-amount"
+                    {% if sort == "-amount" %}selected{% endif %}>
+                    Amount high-low
+                </option>
+            </select>
+
+            <button type="submit">Apply</button>
+            <a href="{% url 'transaction_list' %}">Clear filters</a>
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Repeats</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>
+                    <strong>{{ transaction.name }}</strong>
+                    {% if transaction.description %}
+                        <br>
+                        <small>{{ transaction.description }}</small>
+                    {% endif %}
+                    {% if transaction.category %}
+                        <br>
+                        <small>{{ transaction.category }}</small>
+                    {% endif %}
+                </td>
+                <td>{{ transaction.get_transaction_type_display }}</td>
+                <td>
+                    {% if transaction.transaction_type == "income" %}
+                        <span class="income">+</span>
+                    {% else %}
+                        <span class="expense">-</span>
+                    {% endif %}
+                    ${{ transaction.amount|floatformat:2 }}
+                </td>
+                <td>{{ transaction.date }}</td>
+                <td>{{ transaction.get_frequency_display }}</td>
+                <td>
+                    {% if transaction.is_paid %}
+                        Paid / Received
+                    {% else %}
+                        Unpaid / Expected
+                    {% endif %}
+                </td>
+                <td class="actions">
+                    <form method="post"
+                          action="{% url 'toggle_paid' transaction.id %}">
+                        {% csrf_token %}
+                        <button type="submit">
+                            {% if transaction.is_paid %}
+                                Undo
+                            {% else %}
+                                Mark paid
+                            {% endif %}
+                        </button>
+                    </form>
+
+                    <form method="post"
+                          action="{% url 'delete_transaction' transaction.id %}"
+                          onsubmit="return confirm('Delete this transaction?');">
+                        {% csrf_token %}
+                        <button type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">No transactions yet. Add your first one!</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
