@@ -17,6 +17,24 @@ class TransactionForm(forms.ModelForm):
         ]
 
         widgets = {
-            "date": forms.DateInput(attrs={"type": "date"}),
-            "description": forms.Textarea(attrs={"rows": 3}),
+            "name": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter name",
+            }),
+            "description": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+            }),
+            "amount": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "0.00",
+            }),
+            "date": forms.DateInput(attrs={
+                "class": "form-control",
+                "type": "date",
+            }),
+            "category": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter category",
+            }),
         }
