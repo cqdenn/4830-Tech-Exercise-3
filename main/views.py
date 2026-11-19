@@ -1,5 +1,6 @@
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.shortcuts import render, redirect, get_object_or_404
+from unicodedata import category
 
 from .forms import TransactionForm
 from .models import Transaction
@@ -11,6 +12,12 @@ def transaction_list(request):
     transaction_type = request.GET.get("type", "")
     status = request.GET.get("status", "")
     sort = request.GET.get("sort", "date")
+    search = request.GET.get("q", "").strip()
+
+    if search:
+        transactions = transactions.filter(
+            Q(name__icontains=search) | Q(description__icontains=search) | Q(category__icontains=search)
+        )
 
     if transaction_type in ["income", "expense"]:
         transactions = transactions.filter(
